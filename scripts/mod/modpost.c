@@ -1691,6 +1691,28 @@ static void check_section_mismatch(const char *modname, struct elf_info *elf,
 		else
 			default_mismatch_handler(modname, elf, mismatch,
 						 r, sym, fromsec);
+		Elf_Sym *to;
+		Elf_Sym *from;
+		const char *tosym;
+		const char *fromsym;
+
+		from = find_elf_symbol2(elf, r->r_offset, fromsec);
+		fromsym = sym_name(elf, from);
+		to = find_elf_symbol(elf, r->r_addend, sym);
+		tosym = sym_name(elf, to);
+
+		if (!strncmp(fromsym, "reference___initcall",
+				sizeof("reference___initcall")-1))
+			return;
+
+		/* check whitelist - we may ignore it */
+		if (secref_whitelist(mismatch,
+					fromsec, fromsym, tosec, tosym)) {
+			report_sec_mismatch(modname, mismatch,
+			   fromsec, r->r_offset, fromsym,
+			   is_function(from), tosec, tosym,
+			   is_function(to));
+		}
 	}
 }
 
