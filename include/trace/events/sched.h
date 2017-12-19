@@ -662,38 +662,6 @@ TRACE_EVENT(sched_wake_idle_without_ipi,
 	TP_printk("cpu=%d", __entry->cpu)
 );
 
-TRACE_EVENT(sched_preempt_disable,
-
-	TP_PROTO(u64 delta, bool irqs_disabled,
-			unsigned long caddr0, unsigned long caddr1,
-			unsigned long caddr2, unsigned long caddr3),
-
-	TP_ARGS(delta, irqs_disabled, caddr0, caddr1, caddr2, caddr3),
-
-	TP_STRUCT__entry(
-		__field(u64, delta)
-		__field(bool, irqs_disabled)
-		__field(void*, caddr0)
-		__field(void*, caddr1)
-		__field(void*, caddr2)
-		__field(void*, caddr3)
-	),
-
-	TP_fast_assign(
-		__entry->delta = delta;
-		__entry->irqs_disabled = irqs_disabled;
-		__entry->caddr0 = (void *)caddr0;
-		__entry->caddr1 = (void *)caddr1;
-		__entry->caddr2 = (void *)caddr2;
-		__entry->caddr3 = (void *)caddr3;
-	),
-
-	TP_printk("delta=%llu(ns) irqs_d=%d Callers:(%pf<-%pf<-%pf<-%pf)",
-				__entry->delta, __entry->irqs_disabled,
-				__entry->caddr0, __entry->caddr1,
-				__entry->caddr2, __entry->caddr3)
-);
-
 TRACE_EVENT(sched_contrib_scale_f,
 
 	TP_PROTO(int cpu, unsigned long freq_scale_factor,
@@ -1127,6 +1095,7 @@ TRACE_EVENT(walt_update_task_ravg,
 		__array(	char,	comm,   TASK_COMM_LEN	)
 		__field(	pid_t,	pid			)
 		__field(	pid_t,	cur_pid			)
+		__field(unsigned int,	cur_freq		)
 		__field(	u64,	wallclock		)
 		__field(	u64,	mark_start		)
 		__field(	u64,	delta_m			)
@@ -1154,6 +1123,7 @@ TRACE_EVENT(walt_update_task_ravg,
 		__entry->evt            = evt;
 		__entry->cpu            = rq->cpu;
 		__entry->cur_pid        = rq->curr->pid;
+		__entry->cur_freq       = rq->cur_freq;
 		memcpy(__entry->comm, p->comm, TASK_COMM_LEN);
 		__entry->pid            = p->pid;
 		__entry->mark_start     = p->ravg.mark_start;
@@ -1172,10 +1142,11 @@ TRACE_EVENT(walt_update_task_ravg,
 		__entry->active_windows	= p->ravg.active_windows;
 	),
 
-	TP_printk("wc %llu ws %llu delta %llu event %d cpu %d cur_pid %d task %d (%s) ms %llu delta %llu demand %u sum %u irqtime %llu"
+	TP_printk("wc %llu ws %llu delta %llu event %d cpu %d cur_freq %u cur_pid %d task %d (%s) ms %llu delta %llu demand %u sum %u irqtime %llu"
 		" cs %llu ps %llu util %lu cur_window %u prev_window %u active_wins %u"
 		, __entry->wallclock, __entry->win_start, __entry->delta,
-		__entry->evt, __entry->cpu, __entry->cur_pid,
+		__entry->evt, __entry->cpu,
+		__entry->cur_freq, __entry->cur_pid,
 		__entry->pid, __entry->comm, __entry->mark_start,
 		__entry->delta_m, __entry->demand,
 		__entry->sum, __entry->irqtime,
