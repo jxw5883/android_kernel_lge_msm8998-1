@@ -6639,7 +6639,7 @@ done:
 int cpu_util_wake(int cpu, struct task_struct *p)
 {
 	struct cfs_rq *cfs_rq;
-	unsigned long util;
+	unsigned int util;
 
 #ifdef CONFIG_SCHED_WALT
 	/*
@@ -6662,7 +6662,6 @@ int cpu_util_wake(int cpu, struct task_struct *p)
 
 	/* Discount task's blocked util from CPU's util */
 	util -= min_t(unsigned int, util, task_util(p));
-
 	/*
 	 * Covered cases:
 	 *
@@ -6690,14 +6689,14 @@ int cpu_util_wake(int cpu, struct task_struct *p)
 	 * enabled.
 	 */
 	if (sched_feat(UTIL_EST))
-		util = max_t(unsigned long, util, READ_ONCE(cfs_rq->avg.util_est.enqueued));
+		util = max(util, READ_ONCE(cfs_rq->avg.util_est.enqueued));
 
 	/*
 	 * Utilization (estimated) can exceed the CPU capacity, thus let's
 	 * clamp to the maximum CPU capacity to ensure consistency with
 	 * the cpu_util call.
 	 */
-	return min(util, capacity_orig_of(cpu));
+	return min_t(unsigned long, util, capacity_orig_of(cpu));
 }
 
 static int start_cpu(bool boosted)
