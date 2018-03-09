@@ -1716,10 +1716,21 @@ static inline unsigned long cpu_util(int cpu)
 static inline void set_dl_cpu_capacity(int cpu, bool request,
 				       unsigned long capacity)
 {
-	if (per_cpu(cpu_sched_capacity_reqs, cpu).dl != capacity) {
-		per_cpu(cpu_sched_capacity_reqs, cpu).dl = capacity;
-		update_cpu_capacity_request(cpu, request);
+	unsigned long util = READ_ONCE(cpu_rq(cpu)->cfs.avg.util_avg);
+	unsigned long capacity = capacity_orig_of(cpu);
+
+	/* UTIL_EST */
+	if (sched_feat(UTIL_EST)) {
+		util = max_t(unsigned long, util,
+			     READ_ONCE(cpu_rq(cpu)->cfs.avg.util_est.enqueued));
 	}
+
+#ifdef CONFIG_SCHED_WALT
+	if (!walt_disabled && sysctl_sched_use_walt_cpu_util)
+		util = div64_u64(cpu_rq(cpu)->prev_runnable_sum,
+				 walt_ravg_window >> SCHED_LOAD_SHIFT);
+#endif
+	return (util >= capacity) ? capacity : util;
 }
 #else
 static inline bool sched_freq(void) { return false; }
