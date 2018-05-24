@@ -5062,7 +5062,6 @@ enqueue_task_fair(struct rq *rq, struct task_struct *p, int flags)
 	}
 
 #endif /* CONFIG_SMP */
-	util_est_enqueue(&rq->cfs, p);
 	hrtick_update(rq);
 }
 
