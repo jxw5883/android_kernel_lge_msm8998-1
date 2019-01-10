@@ -1071,10 +1071,6 @@ static void f2fs_put_super(struct super_block *sb)
 	 * above failed with error.
 	 */
 	f2fs_destroy_stats(sbi);
-<<<<<<< HEAD
-	f2fs_gc_sbi_list_del(sbi);
-=======
->>>>>>> 1cb88841a59f... Merge branch 'upstream-f2fs-stable-linux-4.4.y' of https://android.googlesource.com/kernel/common into vaccine
 
 	/* destroy f2fs internal modules */
 	f2fs_destroy_node_manager(sbi);
@@ -2670,16 +2666,9 @@ int f2fs_sanity_check_ckpt(struct f2fs_sb_info *sbi)
 		for (j = 0; j < NR_CURSEG_DATA_TYPE; j++) {
 			if (le32_to_cpu(ckpt->cur_node_segno[i]) ==
 				le32_to_cpu(ckpt->cur_data_segno[j])) {
-<<<<<<< HEAD
-				f2fs_msg(sbi->sb, KERN_ERR,
-					"Node segment (%u) and Data segment (%u)"
-					" has the same segno: %u", i, j,
-					le32_to_cpu(ckpt->cur_node_segno[i]));
-=======
 				f2fs_err(sbi, "Data segment (%u) and Data segment (%u) has the same segno: %u",
 					 i, j,
 					 le32_to_cpu(ckpt->cur_node_segno[i]));
->>>>>>> 1cb88841a59f... Merge branch 'upstream-f2fs-stable-linux-4.4.y' of https://android.googlesource.com/kernel/common into vaccine
 				return 1;
 			}
 		}
@@ -3330,11 +3319,8 @@ try_onemore:
 		goto free_stats;
 	}
 
-<<<<<<< HEAD
-	f2fs_gc_sbi_list_add(sbi);
+	f2fs_sbi_list_add(sbi);
 
-=======
->>>>>>> 1cb88841a59f... Merge branch 'upstream-f2fs-stable-linux-4.4.y' of https://android.googlesource.com/kernel/common into vaccine
 	/* read root inode and dentry */
 	root = f2fs_iget(sb, F2FS_ROOT_INO(sbi));
 	if (IS_ERR(root)) {
@@ -3487,6 +3473,7 @@ free_node_inode:
 	iput(sbi->node_inode);
 	sbi->node_inode = NULL;
 free_stats:
+	f2fs_sbi_list_del(sbi);
 	f2fs_destroy_stats(sbi);
 free_nm:
 	f2fs_destroy_node_manager(sbi);
