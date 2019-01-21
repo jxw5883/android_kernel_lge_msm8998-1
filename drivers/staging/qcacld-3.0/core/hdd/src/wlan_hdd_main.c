@@ -13258,6 +13258,7 @@ static ssize_t wlan_hdd_state_ctrl_param_write(struct file *filp,
 
 	if (!hdd_loaded) {
 		if (hdd_driver_load()) {
+		if (__hdd_module_init()) {
 			pr_err("%s: Failed to init hdd module\n", __func__);
 			goto exit;
 		}
