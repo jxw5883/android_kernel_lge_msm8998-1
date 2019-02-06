@@ -2663,12 +2663,12 @@
 	qcom,msm-thermal {
 		compatible = "qcom,msm-thermal";
 		qcom,sensor-id = <1>;
-		qcom,poll-ms = <0>;
+		qcom,poll-ms = <200>;
 		qcom,therm-reset-temp = <105>;
 		qcom,core-limit-temp = <105>;
 		qcom,core-temp-hysteresis = <10>;
 		qcom,hotplug-temp = <105>;
-		qcom,hotplug-temp-hysteresis = <1000>;
+		qcom,hotplug-temp-hysteresis = <10>;
 		qcom,online-hotplug-core;
 		qcom,synchronous-cluster-id = <0 1>;
 		qcom,synchronous-cluster-map = <>,
@@ -2677,7 +2677,7 @@
 		clocks = <&clock_cpu clk_pwrcl_clk>;
 
 		qcom,vdd-restriction-temp = <5>;
-		qcom,vdd-restriction-temp-hysteresis = <1000>;
+		qcom,vdd-restriction-temp-hysteresis = <10>;
 
 		vdd-dig-supply = <&pm8998_s1_floor_level>;
 		vdd-gfx-supply = <&gfx_vreg>;
