@@ -534,6 +534,8 @@ static ssize_t iowait_boost_enable_store(struct gov_attr_set *attr_set,
 		return -EINVAL;
 
 	tunables->iowait_boost_enable = enable;
+
+	return count; 
 }	
 
 static ssize_t bit_shift_show(struct gov_attr_set *attr_set, char *buf)
