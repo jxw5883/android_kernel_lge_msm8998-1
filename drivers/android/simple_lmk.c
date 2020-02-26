@@ -216,7 +216,6 @@ static void scan_and_kill(unsigned long pages_needed)
 			set_tsk_thread_flag(t, TIF_MEMDIE);
 		rcu_read_unlock();
 
-<<<<<<< HEAD
 		/* Grab a reference to the victim for later before unlocking */
 		get_task_struct(vtsk);
 		task_unlock(vtsk);
