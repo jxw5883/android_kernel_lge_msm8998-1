@@ -108,6 +108,9 @@ static int lmk_kill_cnt = 0;
 static int lmk_reclaim_cnt = 0;
 #endif
 
+static int enable_lmk = 1;
+module_param_named(enable_lmk, enable_lmk, int, 0644);
+
 static unsigned long lowmem_deathpending_timeout;
 
 #define lowmem_print(level, x...)			\
@@ -119,6 +122,9 @@ static unsigned long lowmem_deathpending_timeout;
 static unsigned long lowmem_count(struct shrinker *s,
 				  struct shrink_control *sc)
 {
+	if (!enable_lmk)
+		return 0;
+
 	return global_page_state(NR_ACTIVE_ANON) +
 		global_page_state(NR_ACTIVE_FILE) +
 		global_page_state(NR_INACTIVE_ANON) +
