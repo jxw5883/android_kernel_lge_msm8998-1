@@ -2284,6 +2284,7 @@ int smblib_set_prop_batt_capacity(struct smb_charger *chg,
 	return 0;
 }
 
+#define SCREEN_ON_ICL		3200000
 #ifdef CONFIG_LGE_PM
 int smblib_set_prop_batt_status(struct smb_charger *chg,
 				  const union power_supply_propval *val)
