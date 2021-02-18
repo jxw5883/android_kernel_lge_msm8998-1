@@ -4,7 +4,7 @@
  * Copyright (C) 2016, Intel Corporation
  * Author: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
  *
- * Copyright (C) 2018-2019, eng.stk
+ * Copyright (C) 2018, eng.stk
  * changes for blu_schedutil: eng.stk <eng.stk@sapo.pt>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -20,7 +20,9 @@
 #include <linux/sched/sysctl.h>
 #include "sched.h"
 #include "tune.h"
-#include <../drivers/oneplus/coretech/uxcore/opchain_helper.h>
+
+unsigned long boosted_cpu_util(int cpu);
+
 /* Stub out fast switch routines present on mainline to reduce the backport
  * overhead. */
 #define cpufreq_driver_fast_switch(x, y) 0
@@ -141,18 +143,13 @@ static void sugov_update_commit(struct sugov_policy *sg_policy, u64 time,
 {
 	struct cpufreq_policy *policy = sg_policy->policy;
 
-	/*yankelong add ,modify judging condition*/
-	if (policy->cur == next_freq) {
-		sg_policy->next_freq = next_freq;
+	if (sugov_up_down_rate_limit(sg_policy, time, next_freq)) {
+		/* Don't cache a raw freq that didn't become next_freq */
+		sg_policy->cached_raw_freq = 0;
 		return;
 	}
 
 	if (sg_policy->next_freq == next_freq)
-	if (sugov_up_down_rate_limit(sg_policy, time, next_freq)) {
-		/* Don't cache a raw freq that didn't become next_freq */
-		sg_policy->cached_raw_freq = 0;
-	if (policy->cur == next_freq) {
-		sg_policy->next_freq = next_freq;
 		return;
 	}
 
@@ -307,7 +304,7 @@ static void sugov_calc_avg_cap(struct sugov_policy *sg_policy, u64 curr_ws,
 	if (unlikely(!sysctl_sched_use_walt_cpu_util))
 		return;
 
-	BUG_ON(curr_ws < last_ws);
+	WARN_ON(curr_ws < last_ws);
 	if (curr_ws <= last_ws)
 		return;
 
@@ -529,7 +526,7 @@ static void sugov_work(struct kthread_work *work)
 	mutex_lock(&sg_policy->work_lock);
 	raw_spin_lock_irqsave(&sg_policy->update_lock, flags);
 	sugov_track_cycles(sg_policy, sg_policy->policy->cur,
-			   sched_ktime_clock());
+			   ktime_get_ns());
 	raw_spin_unlock_irqrestore(&sg_policy->update_lock, flags);
 	__cpufreq_driver_target(sg_policy->policy, sg_policy->next_freq,
 				CPUFREQ_RELATION_L);
@@ -1060,19 +1057,10 @@ static void sugov_limits(struct cpufreq_policy *policy)
 		mutex_lock(&sg_policy->work_lock);
 		raw_spin_lock_irqsave(&sg_policy->update_lock, flags);
 		sugov_track_cycles(sg_policy, sg_policy->policy->cur,
-				   sched_ktime_clock());
+				   ktime_get_ns());
 		raw_spin_unlock_irqrestore(&sg_policy->update_lock, flags);
 		cpufreq_policy_apply_limits(policy);
 		mutex_unlock(&sg_policy->work_lock);
-	} else {
-		raw_spin_lock_irqsave(&sg_policy->update_lock, flags);
-		sugov_track_cycles(sg_policy, sg_policy->policy->cur,
-				   sched_ktime_clock());
-		ret = cpufreq_policy_apply_limits_fast(policy);
-		if (ret && policy->cur != ret) {
-			policy->cur = ret;
-		}
-		raw_spin_unlock_irqrestore(&sg_policy->update_lock, flags);
 	}
 
 	sg_policy->need_freq_update = true;
