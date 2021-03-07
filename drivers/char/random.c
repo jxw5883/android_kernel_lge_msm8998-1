@@ -300,7 +300,7 @@
  * The minimum number of bits of entropy before we wake up a read on
  * /dev/random.  Should be enough to do a significant reseed.
  */
-static int random_read_wakeup_bits = 1024;
+static int random_read_wakeup_bits = 128;
 
 /*
  * If the entropy count falls under this number of bits, then we
@@ -1609,7 +1609,7 @@ const struct file_operations random_fops = {
 };
 
 const struct file_operations urandom_fops = {
-	.read  = urandom_read,
+	.read  = random_read,
 	.write = random_write,
 	.unlocked_ioctl = random_ioctl,
 	.fasync = random_fasync,
