@@ -300,14 +300,14 @@
  * The minimum number of bits of entropy before we wake up a read on
  * /dev/random.  Should be enough to do a significant reseed.
  */
-static int random_read_wakeup_bits = 999;
+static int random_read_wakeup_bits = 128;
 
 /*
  * If the entropy count falls under this number of bits, then we
  * should wake up processes which are selecting or polling on write
  * access to /dev/random.
  */
-static int random_write_wakeup_bits = 28 * OUTPUT_POOL_WORDS;
+static int random_write_wakeup_bits = 32 * OUTPUT_POOL_WORDS;
 
 /*
  * The minimum number of seconds between urandom pool reseeding.  We
@@ -1609,7 +1609,7 @@ const struct file_operations random_fops = {
 };
 
 const struct file_operations urandom_fops = {
-	.read  = urandom_read,
+	.read  = random_read,
 	.write = random_write,
 	.unlocked_ioctl = random_ioctl,
 	.fasync = random_fasync,
