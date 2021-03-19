@@ -793,7 +793,6 @@ static int gs_start_io(struct gs_port *port)
 #else
 	if (started && port->port.tty) {
 #endif
-	if (started) {
 		gs_start_tx(port);
 		/* Unblock any pending writes into our circular buffer, in case
 		 * we didn't in gs_start_tx() */
