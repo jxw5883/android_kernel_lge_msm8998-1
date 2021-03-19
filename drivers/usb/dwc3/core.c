@@ -916,6 +916,7 @@ static void dwc3_core_exit_mode(struct dwc3 *dwc)
 		/* do nothing */
 		break;
 	}
+
 }
 
 /* XHCI reset, resets other CORE registers as well, re-init those */
