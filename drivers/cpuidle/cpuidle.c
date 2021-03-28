@@ -35,24 +35,6 @@ static int enabled_devices;
 static int off __read_mostly;
 static int initialized __read_mostly;
 
-#ifdef CONFIG_SMP
-static atomic_t idled = ATOMIC_INIT(0);
-
-#if NR_CPUS > 32
-#error idled CPU mask not big enough for NR_CPUS
-#endif
-
-void cpuidle_set_idle_cpu(unsigned int cpu)
-{
-	atomic_or(BIT(cpu), &idled);
-}
-
-void cpuidle_clear_idle_cpu(unsigned int cpu)
-{
-	atomic_andnot(BIT(cpu), &idled);
-}
-#endif
-
 int cpuidle_disabled(void)
 {
 	return off;
@@ -142,9 +124,8 @@ static void enter_freeze_proper(struct cpuidle_driver *drv,
 	 * suspended is generally unsafe.
 	 */
 	stop_critical_timings();
-	drv->states[index].enter_s2idle(dev, drv, index);
-	if (WARN_ON_ONCE(!irqs_disabled()))
-		local_irq_disable();
+	drv->states[index].enter_freeze(dev, drv, index);
+	WARN_ON(!irqs_disabled());
 	/*
 	 * timekeeping_resume() that will be called by tick_unfreeze() for the
 	 * first CPU executing it calls functions containing RCU read-side
@@ -646,13 +627,17 @@ static void smp_callback(void *v)
  */
 static int cpuidle_latency_notify(struct notifier_block *b,
 		unsigned long l, void *v)
+{
+	struct cpumask cpus;
 
-	unsigned long cpus = atomic_read(&idled) & *cpumask_bits(to_cpumask(v));
+	if (v)
+		cpumask_andnot(&cpus, v, cpu_isolated_mask);
+	else
+		cpumask_andnot(&cpus, cpu_online_mask, cpu_isolated_mask);
 
-	/* Use READ_ONCE to get the isolated mask outside cpu_add_remove_lock */
-	cpus &= ~READ_ONCE(*cpumask_bits(cpu_isolated_mask));
-	if (cpus)
-		arch_send_wakeup_ipi_mask(to_cpumask(&cpus));
+	preempt_disable();
+	smp_call_function_many(&cpus, smp_callback, NULL, 1);
+	preempt_enable();
 
 	return NOTIFY_OK;
 }
@@ -693,3 +678,4 @@ static int __init cpuidle_init(void)
 
 module_param(off, int, 0444);
 core_initcall(cpuidle_init);
+
