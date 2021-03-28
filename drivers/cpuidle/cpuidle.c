@@ -34,7 +34,6 @@ LIST_HEAD(cpuidle_detected_devices);
 static int enabled_devices;
 static int off __read_mostly;
 static int initialized __read_mostly;
-static atomic_t idle_cpus = ATOMIC_INIT(0);
 
 #ifdef CONFIG_SMP
 static atomic_t idled = ATOMIC_INIT(0);
@@ -219,9 +218,7 @@ int cpuidle_enter_state(struct cpuidle_device *dev, struct cpuidle_driver *drv,
 	time_start = ktime_get();
 
 	stop_critical_timings();
-	atomic_or(BIT(dev->cpu), &idle_cpus);
 	entered_state = target_state->enter(dev, drv, index);
-	atomic_andnot(BIT(dev->cpu), &idle_cpus);
 	start_critical_timings();
 
 	time_end = ktime_get();
@@ -649,16 +646,9 @@ static void smp_callback(void *v)
  */
 static int cpuidle_latency_notify(struct notifier_block *b,
 		unsigned long l, void *v)
-	static unsigned long prev_latency = ULONG_MAX;
 
-	if (l < prev_latency) {
-		const unsigned long cpus = atomic_read(&idle_cpus);
-		struct cpumask *idle_mask = to_cpumask(&cpus);
+	unsigned long cpus = atomic_read(&idled) & *cpumask_bits(to_cpumask(v));
 
-		cpumask_andnot(idle_mask, idle_mask, cpu_isolated_mask);
-		preempt_disable();
-		smp_call_function_many(idle_mask, smp_callback, NULL, false);
-		preempt_enable();
 	/* Use READ_ONCE to get the isolated mask outside cpu_add_remove_lock */
 	cpus &= ~READ_ONCE(*cpumask_bits(cpu_isolated_mask));
 	if (cpus)
@@ -689,7 +679,6 @@ static int __init cpuidle_init(void)
 {
 	int ret;
 
-	BUILD_BUG_ON(NR_CPUS > sizeof(idle_cpus.counter) * 8);
 	if (cpuidle_disabled())
 		return -ENODEV;
 
