@@ -91,7 +91,7 @@ static int gc_thread_func(void *data)
 		if (sbi->sb->s_writers.frozen >= SB_FREEZE_WRITE) {
 			if (!sbi->rapid_gc) {
 				increase_sleep_time(gc_th, &wait_ms);
-				stat_other_skip_bggc_count(sbi);
+				(sbi);
 			}
 			continue;
 		}
@@ -148,7 +148,7 @@ do_gc:
 			sbi->rapid_gc = false;
 			rapid_gc_set_wakelock();
 			sbi->gc_mode = GC_NORMAL;
-			f2fs_info(sbi,
+		                (sbi,
 				"No more rapid GC victim found, "
 				"sleeping for %u ms", wait_ms);
 
@@ -157,7 +157,7 @@ do_gc:
 			 * that would not be read again anytime soon.
 			 */
 			mm_drop_caches(3);
-			f2fs_info(sbi, "dropped caches");
+			(sbi, "dropped caches");
 		}
 
 		trace_f2fs_background_gc(sbi->sb, wait_ms,
@@ -243,7 +243,7 @@ static void f2fs_start_rapid_gc(void)
 			wake_up_interruptible_all(&sbi->gc_thread->gc_wait_queue_head);
 			wake_up_discard_thread(sbi, true);
 		} else {
-			f2fs_info(sbi, "Invalid blocks lower than %d%%,"
+			(sbi, "Invalid blocks lower than %d%%,"
 					"skipping rapid GC (%u / (%u - %u))",
 					RAPID_GC_LIMIT_INVALID_BLOCK,
 					invalid_blocks,

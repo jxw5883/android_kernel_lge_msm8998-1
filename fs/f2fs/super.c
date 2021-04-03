@@ -2480,7 +2480,7 @@ static int init_blkz_info(struct f2fs_sb_info *sbi, int devi)
 #define F2FS_REPORT_NR_ZONES   4096
 
 	zones = f2fs_kzalloc(sbi,
-			     array_size(F2FS_REPORT_NR_ZONES,
+			     (F2FS_REPORT_NR_ZONES,
 					sizeof(struct blk_zone)),
 			     GFP_KERNEL);
 	if (!zones)
@@ -2627,7 +2627,7 @@ static int f2fs_scan_devices(struct f2fs_sb_info *sbi)
 	 * zoned block device information.
 	 */
 	sbi->devs = f2fs_kzalloc(sbi,
-				 array_size(max_devices,
+				 (max_devices,
 					    sizeof(struct f2fs_dev_info)),
 				 GFP_KERNEL);
 	if (!sbi->devs)
@@ -2853,7 +2853,7 @@ try_onemore:
 
 		sbi->write_io[i] =
 			f2fs_kmalloc(sbi,
-				     array_size(n,
+				     (n,
 						sizeof(struct f2fs_bio_info)),
 				     GFP_KERNEL);
 		if (!sbi->write_io[i]) {
