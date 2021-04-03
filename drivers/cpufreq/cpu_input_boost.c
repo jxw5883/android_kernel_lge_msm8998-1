@@ -335,20 +335,6 @@ static int cpu_notifier_cb(struct notifier_block *nb, unsigned long action,
 		set_hist_memory_val(0);
 		set_hyst_length_val(0);
 
-		/* GPU boost */
-		/* Enable KGSL_PWRFLAGS_POWER_ON */
-		__force_on_store_ph(1, 0);
-		/* Enable KGSL_PWRFLAGS_CLK_ON */
-		__force_on_store_ph(1, 1);
-		__timer_store_ph(10000, KGSL_PWR_IDLE_TIMER);
-	} else {
-
-		/* GPU unboost */
-		/* Disable KGSL_PWRFLAGS_POWER_ON */
-		__force_on_store_ph(0, 0);
-		/* Disable KGSL_PWRFLAGS_CLK_ON */
-		__force_on_store_ph(0, 1);
-		__timer_store_ph(64, KGSL_PWR_IDLE_TIMER);
 	}
 
 	/* return early if being max bosted */
