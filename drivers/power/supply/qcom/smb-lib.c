@@ -2284,6 +2284,12 @@ int smblib_set_prop_batt_capacity(struct smb_charger *chg,
 	return 0;
 }
 
+#ifdef CONFIG_MACH_LGE
+#define SCREEN_ON_ICL		3200000
+#define SCREEN_ON_CHECK_MS	90000
+#define SCREEN_OFF_CHECK_MS	5000
+#endif
+
 #ifdef CONFIG_LGE_PM
 int smblib_set_prop_batt_status(struct smb_charger *chg,
 				  const union power_supply_propval *val)
@@ -2298,6 +2304,12 @@ int smblib_set_prop_batt_status(struct smb_charger *chg,
 
 	return 0;
 }
+#endif
+
+#ifdef CONFIG_MACH_LGE
+#define MAX_CURRENT_PERCENT		100
+#define HIGH_CURRENT_PERCENT		95
+#define MEDIUM_CURRENT_PERCENT		80
 #endif
 
 int smblib_set_prop_system_temp_level(struct smb_charger *chg,
