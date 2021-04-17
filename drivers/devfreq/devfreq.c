@@ -76,7 +76,6 @@ static void devfreq_set_freq_limits(struct devfreq *devfreq)
 {
 	int idx;
 	unsigned long min = ~0, max = 0;
-
 	if (!devfreq->profile->freq_table)
 		return;
 
