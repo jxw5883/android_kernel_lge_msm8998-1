@@ -55,11 +55,6 @@ enum {
 	MAX_BOOST
 };
 
-#ifdef CONFIG_DYNAMIC_STUNE_BOOST
-static int dynamic_stune_boost;
-module_param(dynamic_stune_boost, uint, 0644);
-#endif /* CONFIG_DYNAMIC_STUNE_BOOST */
-
 struct boost_drv {
 	struct delayed_work powerhal_unboost;
 	struct delayed_work powerhal_max_unboost;
@@ -252,13 +247,6 @@ static void powerhal_unboost_worker(struct work_struct *work)
 
 	clear_bit(POWERHAL_BOOST, &b->state);
 	wake_up(&b->boost_waitq);
-#ifdef CONFIG_DYNAMIC_STUNE_BOOST
-	/* Set dynamic stune boost value */
-	do_stune_boost("top-app", dynamic_stune_boost);
-#endif /* CONFIG_DYNAMIC_STUNE_BOOST */
-
-	queue_delayed_work(b->wq, &b->input_unboost,
-		msecs_to_jiffies(input_boost_duration));
 }
 
 static void powerhal_max_unboost_worker(struct work_struct *work)
@@ -268,14 +256,6 @@ static void powerhal_max_unboost_worker(struct work_struct *work)
 
 	clear_bit(POWERHAL_MAX_BOOST, &b->state);
 	wake_up(&b->boost_waitq);
-	clear_boost_bit(b, INPUT_BOOST);
-
-#ifdef CONFIG_DYNAMIC_STUNE_BOOST
-	/* Reset dynamic stune boost value to the default value */
-	reset_stune_boost("top-app");
-#endif /* CONFIG_DYNAMIC_STUNE_BOOST */
-
-	update_online_cpu_policy();
 }
 
 static void input_unboost_worker(struct work_struct *work)
@@ -285,18 +265,6 @@ static void input_unboost_worker(struct work_struct *work)
 
 	clear_bit(INPUT_BOOST, &b->state);
 	wake_up(&b->boost_waitq);
-	if (!cancel_delayed_work_sync(&b->max_unboost)) {
-		set_boost_bit(b, MAX_BOOST);
-		update_online_cpu_policy();
-	}
-
-#ifdef CONFIG_DYNAMIC_STUNE_BOOST
-	/* Set dynamic stune boost value */
-	do_stune_boost("top-app", dynamic_stune_boost);
-#endif /* CONFIG_DYNAMIC_STUNE_BOOST */	
-
-	queue_delayed_work(b->wq, &b->max_unboost,
-		msecs_to_jiffies(atomic_read(&b->max_boost_dur)));
 }
 
 static void max_unboost_worker(struct work_struct *work)
@@ -306,14 +274,6 @@ static void max_unboost_worker(struct work_struct *work)
 
 	clear_bit(MAX_BOOST, &b->state);
 	wake_up(&b->boost_waitq);
-	clear_boost_bit(b, MAX_BOOST);
-
-#ifdef CONFIG_DYNAMIC_STUNE_BOOST
-	/* Reset dynamic stune boost value to the default value */
-	reset_stune_boost("top-app");
-#endif /* CONFIG_DYNAMIC_STUNE_BOOST */
-
-	update_online_cpu_policy();
 }
 
 static int cpu_boost_thread(void *data)
@@ -329,14 +289,6 @@ static int cpu_boost_thread(void *data)
 	while (1) {
 		bool should_stop = false;
 		unsigned long curr_state;
-#ifdef CONFIG_DYNAMIC_STUNE_BOOST
-	/* Set dynamic stune boost value */
-	do_stune_boost("top-app", dynamic_stune_boost);
-#endif /* CONFIG_DYNAMIC_STUNE_BOOST */	
-
-	queue_delayed_work(b->wq, &b->general_unboost,
-		msecs_to_jiffies(atomic_read(&b->general_boost_dur)));
-}
 
 		wait_event(b->boost_waitq,
 			(curr_state = READ_ONCE(b->state)) != old_state ||
@@ -350,14 +302,6 @@ static int cpu_boost_thread(void *data)
 	}
 
 	return 0;
-	clear_boost_bit(b, GENERAL_BOOST);
-
-#ifdef CONFIG_DYNAMIC_STUNE_BOOST
-	/* Reset dynamic stune boost value to the default value */
-	reset_stune_boost("top-app");
-#endif /* CONFIG_DYNAMIC_STUNE_BOOST */
-
-	update_online_cpu_policy();
 }
 
 static int cpu_notifier_cb(struct notifier_block *nb, unsigned long action,
@@ -489,11 +433,6 @@ free_handle:
 
 static void cpu_input_boost_input_disconnect(struct input_handle *handle)
 {
-#ifdef CONFIG_DYNAMIC_STUNE_BOOST
-	/* Reset dynamic stune boost value to the default value */
-	reset_stune_boost("top-app");
-#endif /* CONFIG_DYNAMIC_STUNE_BOOST */
-
 	input_close_device(handle);
 	input_unregister_handle(handle);
 	kfree(handle);
@@ -578,4 +517,4 @@ unregister_cpu_notif:
 	cpufreq_unregister_notifier(&b->cpu_notif, CPUFREQ_POLICY_NOTIFIER);
 	return ret;
 }
-late_initcall(cpu_input_boost_init);
+subsys_initcall(cpu_input_boost_init);
