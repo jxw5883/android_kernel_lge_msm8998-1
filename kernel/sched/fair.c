@@ -6656,6 +6656,8 @@ done:
  * This method returns the utilization of the specified CPU by discounting the
  * utilization of the specified task, whenever the task is currently
  * contributing to the CPU utilization.
+ * cpu_util_wake: Compute cpu utilization with any contributions from
+ * the waking task p removed.
  */
 int cpu_util_without(int cpu, struct task_struct *p)
 {
@@ -6669,8 +6671,7 @@ int cpu_util_without(int cpu, struct task_struct *p)
 	 * utilization from cpu utilization. Instead just use
 	 * cpu_util for this case.
 	 */
-	if (!walt_disabled && sysctl_sched_use_walt_cpu_util &&
-	    p->state == TASK_WAKING)
+	if (!walt_disabled && sysctl_sched_use_walt_cpu_util)
 		return cpu_util(cpu);
 #endif
 
