@@ -21,6 +21,7 @@
 #include "sched.h"
 #include "tune.h"
 #include <../drivers/oneplus/coretech/uxcore/opchain_helper.h>
+
 /* Stub out fast switch routines present on mainline to reduce the backport
  * overhead. */
 #define cpufreq_driver_fast_switch(x, y) 0
@@ -77,8 +78,6 @@ struct sugov_cpu {
 	unsigned long iowait_boost;
 	unsigned long iowait_boost_max;
 	u64 last_update;
-
-	struct sched_walt_cpu_load walt_load;
 
 	/* The fields below are only needed when sharing a policy. */
 	unsigned long util;
@@ -212,8 +211,6 @@ static void sugov_get_util(unsigned long *util, unsigned long *max, int cpu)
 	unsigned long max_cap, rt;
 	s64 delta;
 
-	struct sugov_cpu *loadcpu = &per_cpu(sugov_cpu, cpu);
-
 	max_cap = arch_scale_cpu_capacity(NULL, cpu);
 	unsigned long cfs_max;
 	struct sugov_cpu *loadcpu = &per_cpu(sugov_cpu, cpu);
@@ -223,7 +220,7 @@ static void sugov_get_util(unsigned long *util, unsigned long *max, int cpu)
 	*util = min(rq->cfs.avg.util_avg, cfs_max);
 	*max = cfs_max;
 
-	*util = boosted_cpu_util(cpu, &loadcpu->walt_load);
+	*util = boosted_cpu_util(cpu);
 	if (likely(use_pelt()))
 		*util = min((*util + rt), max_cap);
 
