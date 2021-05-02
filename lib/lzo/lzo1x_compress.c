@@ -290,22 +290,14 @@ int lzo1x_1_compress(const unsigned char *in, size_t in_len,
 {
 	const unsigned char *ip = in;
 	unsigned char *op = out;
-	unsigned char *data_start;
 	size_t l = in_len;
 	size_t t = 0;
 	signed char state_offset = -2;
 
-	// LZO v0 will never write 17 as first byte (except for zero-length
-	// input), so this is used to version the bitstream
-	if (bitstream_version > 0) {
-		*op++ = 17;
-		*op++ = bitstream_version;
-		m4_max_offset = M4_MAX_OFFSET_V1;
-	} else {
-		m4_max_offset = M4_MAX_OFFSET_V0;
-	}
-
-	data_start = op;
+	// LZO v0 will never write 17 as first byte,
+	// so this is used to version the bitstream
+	*op++ = 17;
+	*op++ = LZO_VERSION;
 
 	while (l > 20) {
 		size_t ll = l <= (M4_MAX_OFFSET + 1) ? l : (M4_MAX_OFFSET + 1);
@@ -325,7 +317,7 @@ int lzo1x_1_compress(const unsigned char *in, size_t in_len,
 	if (t > 0) {
 		const unsigned char *ii = in + in_len - t;
 
-		if (op == data_start && t <= 238) {
+		if (op == out && t <= 238) {
 			*op++ = (17 + t);
 		} else if (t <= 3) {
 			op[state_offset] |= t;
