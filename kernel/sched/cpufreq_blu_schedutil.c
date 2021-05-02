@@ -20,12 +20,7 @@
 #include <linux/sched/sysctl.h>
 #include "sched.h"
 #include "tune.h"
-<<<<<<< HEAD
 #include <../drivers/oneplus/coretech/uxcore/opchain_helper.h>
-=======
-#include <../drivers/oneplus/coretech/opchain/opchain_helper.h>
-
->>>>>>> e330e3217... cpufreq: blu_schedutil: add some compat oem bits
 /* Stub out fast switch routines present on mainline to reduce the backport
  * overhead. */
 #define cpufreq_driver_fast_switch(x, y) 0
@@ -152,17 +147,11 @@ static void sugov_update_commit(struct sugov_policy *sg_policy, u64 time,
 		return;
 	}
 
-<<<<<<< HEAD
 	if (sg_policy->next_freq == next_freq)
 	if (sugov_up_down_rate_limit(sg_policy, time, next_freq)) {
 		/* Don't cache a raw freq that didn't become next_freq */
 		sg_policy->cached_raw_freq = 0;
-=======
-	if (policy->cur == next_freq) {
-		sg_policy->next_freq = next_freq;
->>>>>>> e330e3217... cpufreq: blu_schedutil: add some compat oem bits
 		return;
-	}
 
 	sg_policy->next_freq = next_freq;
 	sg_policy->last_freq_update_time = time;
@@ -209,10 +198,7 @@ static unsigned int get_next_freq(struct sugov_policy *sg_policy,
 	unsigned int freq = arch_scale_freq_invariant() ?
 				policy->cpuinfo.max_freq : policy->cur;
 
-	if (!policy->cpu || !opc_fps_check(0))
-		freq = (freq + (freq >> 2)) * util / max;
-	else
-		freq = freq * util / max + 1;
+	freq = (freq + (freq >> 2)) * util / max;
 
 	if (freq == sg_policy->cached_raw_freq && sg_policy->next_freq != UINT_MAX)
 		return sg_policy->next_freq;
