@@ -230,7 +230,6 @@ static void sugov_set_iowait_boost(struct sugov_cpu *sg_cpu, u64 time,
 	if (!sg_policy->tunables->iowait_boost_enable)
 		return;
 
-<<<<<<< HEAD
 	/* Clear iowait_boost if the CPU apprears to have been idle. */
 	if (sg_cpu->iowait_boost) {
 		s64 delta_ns = time - sg_cpu->last_update;
@@ -241,8 +240,6 @@ static void sugov_set_iowait_boost(struct sugov_cpu *sg_cpu, u64 time,
 		}
 	}
 
-=======
->>>>>>> b673eeffe157... FROMLIST: sched: Make iowait_boost optional in schedutil
 	if (flags & SCHED_CPUFREQ_IOWAIT) {
 		if (sg_cpu->iowait_boost_pending)
 			return;
@@ -706,11 +703,7 @@ static int sugov_init(struct cpufreq_policy *policy)
                 }
 	}
 
-<<<<<<< HEAD
 	tunables->iowait_boost_enable = true;
-=======
-	tunables->iowait_boost_enable = policy->iowait_boost_enable;
->>>>>>> b673eeffe157... FROMLIST: sched: Make iowait_boost optional in schedutil
 
 	policy->governor_data = sg_policy;
 	sg_policy->tunables = tunables;
