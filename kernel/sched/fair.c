@@ -2937,6 +2937,7 @@ ___update_load_avg(u64 now, int cpu, struct sched_avg *sa,
 	if (!delta)
 		return 0;
 
+
 	sa->last_update_time += delta << 10;
 
 	/*
