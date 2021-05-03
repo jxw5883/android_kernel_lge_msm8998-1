@@ -1,4 +1,4 @@
-/* Copyright (c) 2010-2019, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2010-2018, The Linux Foundation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -27,6 +27,8 @@
 #include "kgsl_pwrscale.h"
 #include "kgsl_device.h"
 #include "kgsl_trace.h"
+
+struct device *ph_dev;
 
 #define KGSL_PWRFLAGS_POWER_ON 0
 #define KGSL_PWRFLAGS_CLK_ON   1
@@ -61,7 +63,7 @@ static const char * const clocks[] = {
 	"iref_clk"
 };
 
-static unsigned long ib_votes[KGSL_MAX_BUSLEVELS];
+static unsigned int ib_votes[KGSL_MAX_BUSLEVELS];
 static int last_vote_buslevel;
 static int max_vote_buslevel;
 
@@ -123,7 +125,7 @@ static void _record_pwrevent(struct kgsl_device *device,
 /**
  * kgsl_get_bw() - Return latest msm bus IB vote
  */
-static unsigned long kgsl_get_bw(void)
+static unsigned int kgsl_get_bw(void)
 {
 	return ib_votes[last_vote_buslevel];
 }
@@ -137,9 +139,8 @@ static unsigned long kgsl_get_bw(void)
 static void _ab_buslevel_update(struct kgsl_pwrctrl *pwr,
 				unsigned long *ab)
 {
-	unsigned long ib = ib_votes[last_vote_buslevel];
-	unsigned long max_bw = ib_votes[max_vote_buslevel];
-
+	unsigned int ib = ib_votes[last_vote_buslevel];
+	unsigned int max_bw = ib_votes[max_vote_buslevel];
 	if (!ab)
 		return;
 	if (ib == 0)
@@ -892,6 +893,31 @@ static ssize_t __timer_store(struct device *dev, struct device_attribute *attr,
 	return count;
 }
 
+void __timer_store_ph(unsigned int val,
+					enum kgsl_pwrctrl_timer_type timer)
+{
+	struct kgsl_device *device = kgsl_device_from_dev(ph_dev);
+
+	if (device == NULL)
+		return;
+
+	/*
+	 * We don't quite accept a maximum of 0xFFFFFFFF due to internal jiffy
+	 * math, so make sure the value falls within the largest offset we can
+	 * deal with
+	 */
+
+	if (val > jiffies_to_usecs(MAX_JIFFY_OFFSET))
+		return;
+
+	mutex_lock(&device->mutex);
+	/* Let the timeout be requested in ms, but convert to jiffies. */
+	if (timer == KGSL_PWR_IDLE_TIMER)
+		device->pwrctrl.interval_timeout = msecs_to_jiffies(val);
+
+	mutex_unlock(&device->mutex);
+}
+
 static ssize_t kgsl_pwrctrl_idle_timer_store(struct device *dev,
 					struct device_attribute *attr,
 					const char *buf, size_t count)
@@ -1078,6 +1104,18 @@ static ssize_t __force_on_store(struct device *dev,
 	mutex_unlock(&device->mutex);
 
 	return count;
+}
+
+void __force_on_store_ph(unsigned int val, int flag)
+{
+	struct kgsl_device *device = kgsl_device_from_dev(ph_dev);
+
+	if (device == NULL)
+		return;
+
+	mutex_lock(&device->mutex);
+	__force_on(device, flag, val);
+	mutex_unlock(&device->mutex);
 }
 
 static ssize_t kgsl_pwrctrl_force_clk_on_show(struct device *dev,
@@ -2148,6 +2186,8 @@ int kgsl_pwrctrl_init(struct kgsl_device *device)
 	struct device_node *gpubw_dev_node = NULL;
 	struct platform_device *p2dev;
 
+	ph_dev = device->dev;
+
 	bus_scale_table = msm_bus_cl_get_pdata(device->pdev);
 	if (bus_scale_table == NULL)
 		return -EINVAL;
@@ -2800,7 +2840,7 @@ static int _suspend(struct kgsl_device *device)
 	if ((device->state == KGSL_STATE_NONE) ||
 			(device->state == KGSL_STATE_INIT) ||
 			(device->state == KGSL_STATE_SUSPEND))
-		return ret;
+		goto done;
 
 	/* drain to prevent from more commands being submitted */
 	device->ftbl->drain(device);
@@ -2817,6 +2857,7 @@ static int _suspend(struct kgsl_device *device)
 	if (ret)
 		goto err;
 
+done:
 	kgsl_pwrctrl_set_state(device, KGSL_STATE_SUSPEND);
 	return ret;
 
