@@ -882,6 +882,7 @@ static ssize_t hdmi_tx_sysfs_wta_hpd(struct device *dev,
 			 * No need to blocking wait for display/audio in this
 			 * case since HAL is not up so no ACK can be expected.
 			 */
+			hdmi_tx_notify_events(hdmi_ctrl, 0);
 		}
 
 		break;
