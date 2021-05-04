@@ -446,7 +446,7 @@ static int __qseecom_scm_call2_locked(uint32_t smc_id, struct scm_desc *desc)
 	int retry_count = 0;
 
 	do {
-		ret = scm_call2(smc_id, desc);
+		ret = scm_call2_noretry(smc_id, desc);
 		if (ret == -EBUSY) {
 			mutex_unlock(&app_access_lock);
 			msleep(QSEECOM_SCM_EBUSY_WAIT_MS);
@@ -9221,11 +9221,11 @@ static int qseecom_remove(struct platform_device *pdev)
 		&qseecom.registered_kclient_list_head, list) {
 
 		/* Break the loop if client handle is NULL */
-		if (!kclient->handle)
-			goto exit_free_kclient;
-
-		if (list_empty(&kclient->list))
-			goto exit_free_kc_handle;
+		if (!kclient->handle) {
+			list_del(&kclient->list);
+			kzfree(kclient);
+			break;
+		}
 
 		list_del(&kclient->list);
 		mutex_lock(&app_access_lock);
@@ -9237,11 +9237,6 @@ static int qseecom_remove(struct platform_device *pdev)
 			kzfree(kclient);
 		}
 	}
-
-exit_free_kc_handle:
-	kzfree(kclient->handle);
-exit_free_kclient:
-	kzfree(kclient);
 
 	spin_unlock_irqrestore(&qseecom.registered_kclient_list_lock, flags);
 

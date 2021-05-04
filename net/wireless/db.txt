@@ -573,7 +573,7 @@ country IN:
 	(5170 - 5330 @ 160), (23)
 	(5735 - 5835 @ 80), (33)
 
-country IQ: DFS-ETSI
+	country IQ: DFS-ETSI
 	(2402 - 2482 @ 40), (20)
 	(5170 - 5250 @ 80), (23), AUTO-BW, NO-OUTDOOR
 	(5250 - 5330 @ 80), (23), DFS, AUTO-BW, NO-OUTDOOR
