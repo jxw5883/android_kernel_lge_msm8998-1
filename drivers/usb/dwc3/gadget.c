@@ -2708,6 +2708,9 @@ static void dwc3_disconnect_gadget(struct dwc3 *dwc)
 
 	if (dwc->gadget_driver && dwc->gadget_driver->disconnect) {
 		gadget_driver = dwc->gadget_driver;
+#ifdef CONFIG_LGE_USB
+		trace_printk("[F: %s]: %p\n", __func__, dwc);
+#endif
 		spin_unlock(&dwc->lock);
 		dbg_event(0xFF, "DISCONNECT", 0);
 		gadget_driver->disconnect(&dwc->gadget);
