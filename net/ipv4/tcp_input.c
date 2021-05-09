@@ -4756,7 +4756,6 @@ static struct sk_buff *tcp_collapse_one(struct sock *sk, struct sk_buff *skb,
 	else
 		rb_erase(&skb->rbnode, root);
 
-	__skb_unlink(skb, list);
 	__kfree_skb(skb);
 	NET_INC_STATS_BH(sock_net(sk), LINUX_MIB_TCPRCVCOLLAPSED);
 
