@@ -1792,10 +1792,6 @@ static int power_unvote(struct glink_transport_if *if_ptr)
 	struct edge_info *einfo;
 
 	einfo = container_of(if_ptr, struct edge_info, xprt_if);
-#ifdef CONFIG_MACH_LGE
-    if(einfo->activity_flag != 0)
-        pr_err("%s: TX activity_flag %d\n", __func__, einfo->activity_flag);
-#endif /* CONFIG_MACH_LGE */
 
 	atomic_andnot(ACTIVE_TX, &einfo->activity_flag);
 	return 0;
