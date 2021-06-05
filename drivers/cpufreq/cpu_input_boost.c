@@ -316,10 +316,6 @@ static int cpu_notifier_cb(struct notifier_block *nb, unsigned long action,
 	/* Unboost when the screen is off */
 	if (test_bit(SCREEN_OFF, &b->state)) {
 		policy->min = get_min_freq(policy);
-		/* CPUBW unboost */
-		set_hyst_trigger_count_val(3);
-		set_hist_memory_val(20);
-		set_hyst_length_val(10);
 		return NOTIFY_OK;
 	}
 
@@ -329,12 +325,7 @@ static int cpu_notifier_cb(struct notifier_block *nb, unsigned long action,
 
 	/* Do powerhal boost for powerhal_max_boost */
 	if (test_bit(POWERHAL_MAX_BOOST, &b->state)) {
-
-		/* CPUBW boost */
-		set_hyst_trigger_count_val(0);
-		set_hist_memory_val(0);
-		set_hyst_length_val(0);
-
+		/* Do nothing for now */
 	}
 
 	/* return early if being max bosted */
@@ -352,15 +343,7 @@ static int cpu_notifier_cb(struct notifier_block *nb, unsigned long action,
 		policy->min = get_min_freq(policy);
 
 	if (test_bit(POWERHAL_BOOST, &b->state)) {
-		/* CPUBW boost */
-		set_hyst_trigger_count_val(0);
-		set_hist_memory_val(0);
-		set_hyst_length_val(0);
-	} else {
-		/* CPUBW unboost */
-		set_hyst_trigger_count_val(3);
-		set_hist_memory_val(20);
-		set_hyst_length_val(10);
+		/* Do nothing for now */
 	}
 
 	return NOTIFY_OK;
