@@ -1339,7 +1339,6 @@ struct f2fs_sb_info {
 	unsigned int cur_victim_sec;		/* current victim section num */
 	unsigned int gc_mode;			/* current GC state */
 	unsigned int next_victim_seg[2];	/* next segment in victim section */
-	unsigned int rapid_gc;			/* is rapid GC running */
 	/* for skip statistic */
 	unsigned long long skipped_atomic_files[2];	/* FG_GC and BG_GC */
 	unsigned long long skipped_gc_rwsem;		/* FG_GC only */
@@ -1409,6 +1408,13 @@ struct f2fs_sb_info {
 	__u32 s_chksum_seed;
 
 	struct list_head list;
+};
+
+struct f2fs_private_dio {
+	struct inode *inode;
+	void *orig_private;
+	bio_end_io_t *orig_end_io;
+	bool write;
 };
 
 struct f2fs_private_dio {
