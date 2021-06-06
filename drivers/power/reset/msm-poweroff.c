@@ -536,7 +536,7 @@ static void do_msm_poweroff(void)
 	struct task_struct *task = current;
 	pr_notice("Powering off the SoC (pid: %d, comm: %s)\n",
 			task->pid, task->comm);
-
+#else
 	pr_notice("Powering off the SoC\n");
 #endif
 	set_dload_mode(0);
@@ -550,7 +550,6 @@ static void do_msm_poweroff(void)
 	pr_err("Powering off has failed\n");
 	return;
 }
-#endif
 
 #ifdef CONFIG_LGE_HANDLE_PANIC
 static int __init lge_crash_handler(char *status)
