@@ -82,10 +82,8 @@ static int gc_thread_func(void *data)
 			break;
 
 		if (sbi->sb->s_writers.frozen >= SB_FREEZE_WRITE) {
-			if (!force_gc) {
-				increase_sleep_time(gc_th, &wait_ms);
-				stat_other_skip_bggc_count(sbi);
-			}
+			increase_sleep_time(gc_th, &wait_ms);
+			stat_other_skip_bggc_count(sbi);
 			continue;
 		}
 
@@ -219,9 +217,7 @@ void f2fs_stop_gc_thread(struct f2fs_sb_info *sbi)
 	if (!gc_th)
 		return;
 	kthread_stop(gc_th->f2fs_gc_task);
-	wake_lock_destroy(&gc_th->gc_wakelock);
 	kvfree(gc_th);
-	sbi->gc_mode = GC_NORMAL;
 	sbi->gc_thread = NULL;
 }
 
