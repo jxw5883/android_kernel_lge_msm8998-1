@@ -1,4 +1,4 @@
-/* Copyright (c) 2015-2018, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2015-2017, The Linux Foundation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -742,7 +742,7 @@
 		qcom,src-dst-ports = <1 512>;
 		qcom,active-only;
 		qcom,bw-tbl =
-                        <   762 /*  100 MHz */ >,
+			<   762 /*  100 MHz */ >,
 			<  1144 /*  150 MHz */ >,
 			<  1525 /*  200 MHz */ >,
 			<  2288 /*  300 MHz */ >,
@@ -771,7 +771,7 @@
 		qcom,src-dst-ports = <1 512>;
 		qcom,active-only;
 		qcom,bw-tbl =
-                        <   762 /*  100 MHz */ >,
+			<   762 /*  100 MHz */ >,
 			<  1144 /*  150 MHz */ >,
 			<  1525 /*  200 MHz */ >,
 			<  2288 /*  300 MHz */ >,
@@ -791,7 +791,7 @@
 		qcom,src-dst-ports = <1 512>;
 		qcom,active-only;
 		qcom,bw-tbl =
-                        <   762 /*  100 MHz */ >,
+			<   762 /*  100 MHz */ >,
 			<  1144 /*  150 MHz */ >,
 			<  1525 /*  200 MHz */ >,
 			<  2288 /*  300 MHz */ >,
@@ -804,6 +804,7 @@
 			< 11863 /* 1555 MHz */ >,
 			< 13763 /* 1804 MHz */ >;
 	};
+
 	memlat_cpu4: qcom,memlat-cpu4 {
 		compatible = "qcom,devbw";
 		governor = "powersave";
@@ -811,7 +812,7 @@
 		qcom,active-only;
 		status = "ok";
 		qcom,bw-tbl =
-                        <   762 /*  100 MHz */ >,
+			<   762 /*  100 MHz */ >,
 			<  1144 /*  150 MHz */ >,
 			<  1525 /*  200 MHz */ >,
 			<  2288 /*  300 MHz */ >,
@@ -830,7 +831,7 @@
 		qcom,cpulist =	<&CPU0 &CPU1 &CPU2 &CPU3>;
 		qcom,target-dev = <&memlat_cpu0>;
 		qcom,core-dev-table =
-                        <  300000 1525 >,
+			<  300000 1525 >,
 			<  499200 3143 >,
 			< 1113600 4173 >,
 			< 1881600 7759 >;
@@ -849,7 +850,6 @@
 			< 1555000 11863 >,
 			< 1804000 13763 >;
 	};
-
 
 	devfreq_cpufreq: devfreq-cpufreq {
 		mincpubw-cpufreq {
@@ -2664,15 +2664,15 @@
 		compatible = "qcom,msm-thermal";
 		qcom,sensor-id = <1>;
 		qcom,poll-ms = <200>;
-		qcom,therm-reset-temp = <105>;
-		qcom,core-limit-temp = <105>;
+		qcom,therm-reset-temp = <115>;
+		qcom,core-limit-temp = <115>;
 		qcom,core-temp-hysteresis = <10>;
 		qcom,hotplug-temp = <105>;
 		qcom,hotplug-temp-hysteresis = <10>;
 		qcom,online-hotplug-core;
 		qcom,synchronous-cluster-id = <0 1>;
-		qcom,synchronous-cluster-map = <>,
-						<>;
+		qcom,synchronous-cluster-map = <0 4 &CPU0 &CPU1 &CPU2 &CPU3>,
+						<1 4 &CPU4 &CPU5 &CPU6 &CPU7>;
 		clock-names = "osm";
 		clocks = <&clock_cpu clk_pwrcl_clk>;
 
@@ -2941,7 +2941,7 @@
 		qcom,ibat-monitor {
 			qcom,low-threshold-uamp = <3400000>;
 			qcom,high-threshold-uamp = <4200000>;
-			qcom,mitigation-freq-khz = <1248000>;
+			qcom,mitigation-freq-khz = <1824000>;
 			qcom,vph-high-threshold-uv = <3500000>;
 			qcom,vph-low-threshold-uv = <3300000>;
 			qcom,soc-low-threshold = <5>;
@@ -3078,9 +3078,9 @@
 			reg = <0x10 8>;
 		};
 
-		dload_type@1c {
+		dload_type@18 {
 			compatible = "qcom,msm-imem-dload-type";
-			reg = <0x1c 4>;
+			reg = <0x18 4>;
 		};
 
 		restart_reason@65c {
