@@ -212,6 +212,7 @@ out:
 void f2fs_stop_gc_thread(struct f2fs_sb_info *sbi)
 {
 	struct f2fs_gc_kthread *gc_th = sbi->gc_thread;
+	sbi->rapid_gc = false;
 	if (!gc_th)
 		return;
 	kthread_stop(gc_th->f2fs_gc_task);
