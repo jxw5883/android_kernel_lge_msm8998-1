@@ -511,7 +511,7 @@ show_map_vma(struct seq_file *m, struct vm_area_struct *vma, int is_pid)
 			return;
 		}
 
-		if (is_stack(priv,vma)) {
+		if (is_stack(vma)) {
 			seq_write(m, "[stack]\n", 8);
 			return;
 		}
@@ -839,7 +839,19 @@ static int show_smap(struct seq_file *m, void *v, int is_pid)
 	/* mmap_sem is held in m_start */
 	walk_page_vma(vma, &smaps_walk);
 
-	show_map_vma(m, vma, is_pid);
+	if (!rollup_mode) {
+		show_map_vma(m, vma, is_pid);
+		if (vma_get_anon_name(vma)) {
+			seq_puts(m, "Name:           ");
+			seq_print_vma_name(m, vma);
+		}
+	} else if (last_vma) {
+		show_vma_header_prefix(
+			m, mss->first_vma_start, vma->vm_end, 0, 0, 0, 0);
+		seq_puts(m, "[rollup]\n");
+	} else {
+		ret = SEQ_SKIP;
+	}
 
 	if (vma_get_anon_name(vma)) {
 		seq_puts(m, "Name:           ");
