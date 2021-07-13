@@ -7136,7 +7136,7 @@ PROBE_BOOT_FREQ_EXIT:
 	mit_config[MSM_LIST_MAX_NR + CPUFREQ_CONFIG].disable_config
 		= thermal_cpu_freq_mit_disable;
 #ifdef CONFIG_LGE_PM
-	freq_control_enabled = 1;
+	freq_control_enabled = 0;
 #endif
 #ifdef CONFIG_LGE_PM
 	lmh_dcvs_available = true;
