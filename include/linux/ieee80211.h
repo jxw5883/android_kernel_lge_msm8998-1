@@ -895,7 +895,7 @@ struct ieee80211_mgmt {
 			__le16 capab_info;
 			__le16 listen_interval;
 			/* followed by SSID and Supported rates */
-			u8 variable[];
+			u8 variable[0];
 		} __packed assoc_req;
 		struct {
 			__le16 capab_info;
