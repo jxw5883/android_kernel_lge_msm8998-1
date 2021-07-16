@@ -2284,13 +2284,8 @@ unsigned long wait_task_inactive(struct task_struct *p, long match_state)
 		 * lock now, to be *sure*. If we're wrong, we'll
 		 * just go back and repeat.
 		 */
-<<<<<<< HEAD
-		rq = task_rq_lock(p, &flags);
-		trace_sched_wait_task(p);
-=======
 		rq = task_rq_lock(p, &rf);
 //		trace_sched_wait_task(p);
->>>>>>> 57323d04aa23... sched/core: Introduce 'struct rq_flags'
 		running = task_running(rq, p);
 		queued = task_on_rq_queued(p);
 		ncsw = 0;
