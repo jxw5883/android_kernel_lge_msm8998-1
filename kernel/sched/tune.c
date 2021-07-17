@@ -119,9 +119,6 @@ __schedtune_accept_deltas(int nrg_delta, int cap_delta,
 
 #ifdef CONFIG_CGROUP_SCHEDTUNE
 
-/* We hold schedtune boost in effect for at least this long */
-#define SCHEDTUNE_BOOST_HOLD_NS 50000000ULL
-
 /*
  * EAS scheduler tunables for task groups.
  */
@@ -304,11 +301,7 @@ schedtune_cpu_update(int cpu)
 		 * A boost group affects a CPU only if it has
 		 * RUNNABLE tasks on that CPU
 		 */
-		if (!schedtune_boost_group_active(idx, bg, now))
-			continue;
-
-		/* This boost group is active */
-		if (boost_max > bg->group[idx].boost)
+		if (bg->group[idx].tasks == 0)
 			continue;
 
 		boost_max = max(boost_max, bg->group[idx].boost);
@@ -344,9 +337,7 @@ schedtune_boostgroup_update(int idx, int boost)
 		bg->group[idx].boost = boost;
 
 		/* Check if this update increase current max */
-		now = sched_clock_cpu(cpu);
-		if (boost > cur_boost_max &&
-			schedtune_boost_group_active(idx, bg, now)) {
+		if (boost > cur_boost_max && bg->group[idx].tasks) {
 			bg->boost_max = boost;
 			trace_sched_tune_boostgroup_update(cpu, 1, bg->boost_max);
 			continue;
@@ -377,17 +368,9 @@ schedtune_tasks_update(struct task_struct *p, int cpu, int idx, int task_count)
 	/* Update boosted tasks count while avoiding to make it negative */
 	bg->group[idx].tasks = max(0, tasks);
 
-	/* Update timeout on enqueue */
-	if (task_count > 0) {
-		u64 now = sched_clock_cpu(cpu);
-
-		if (schedtune_update_timestamp(p))
-			bg->group[idx].ts = now;
-
-		/* Boost group activation or deactivation on that RQ */
-		if (bg->group[idx].tasks == 1)
-			schedtune_cpu_update(cpu, now);
-	}
+	/* Boost group activation or deactivation on that RQ */
+	if (tasks == 1 || tasks == 0)
+		schedtune_cpu_update(cpu);
 
 	trace_sched_tune_tasks_update(p, cpu, tasks, idx,
 			bg->group[idx].boost, bg->boost_max);
@@ -494,13 +477,6 @@ int schedtune_can_attach(struct cgroup_taskset *tset)
 		bg->group[src_bg].tasks = max(0, tasks);
 		bg->group[dst_bg].tasks += 1;
 
-		/* Update boost hold start for this group */
-		now = sched_clock_cpu(cpu);
-		bg->group[dst_bg].ts = now;
-
-		/* Force boost group re-evaluation at next boost check */
-		bg->boost_ts = now - SCHEDTUNE_BOOST_HOLD_NS;
-
 		raw_spin_unlock(&bg->lock);
 		unlock_rq_of(rq, task, &irq_flags);
 
@@ -590,12 +566,6 @@ int schedtune_cpu_boost(int cpu)
 	struct boost_groups *bg;
 
 	bg = &per_cpu(cpu_boost_groups, cpu);
-	now = sched_clock_cpu(cpu);
-
-	/* Check to see if we have a hold in effect */
-	if (schedtune_boost_timeout(now, bg->boost_ts))
-		schedtune_cpu_update(cpu, now);
-
 	return bg->boost_max;
 }
 
