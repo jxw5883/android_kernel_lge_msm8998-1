@@ -90,7 +90,7 @@
 #define MSM_THERMAL_THRESH_CLR    "thresh_clr_degc"
 #define MSM_THERMAL_THRESH_UPDATE "update"
 #define DEVM_NAME_MAX 30
-#define HOTPLUG_RETRY_INTERVAL_MS 100
+#define HOTPLUG_RETRY_INTERVAL_MS 0
 #define UIO_VERSION "1.0"
 
 #define CXIP_LM_BASE_ADDRESS      0x1FE5000
@@ -104,8 +104,8 @@
 #define CXIP_LM_BYPASS_VAL        0xFF00
 #define CXIP_LM_THERM_VOTE_VAL    0x80
 #define CXIP_LM_THERM_SENS_ID     8
-#define CXIP_LM_THERM_SENS_HIGH   90
-#define CXIP_LM_THERM_SENS_LOW    75
+#define CXIP_LM_THERM_SENS_HIGH   105
+#define CXIP_LM_THERM_SENS_LOW    100
 
 #define VALIDATE_AND_SET_MASK(_node, _key, _mask, _cpu) \
 	do { \
