@@ -1001,7 +1001,6 @@ static void thermal_zone_device_check(struct work_struct *work)
 	thermal_zone_device_update(tz);
 }
 
-#ifdef CONFIG_THERMAL_SWITCH
 #define to_thermal_msg_device(_dev)	\
 	container_of(_dev, struct thermal_message_device, device)
 
@@ -1053,7 +1052,6 @@ temp_state_store(struct device *dev, struct device_attribute *devattr,
 }
 
 static DEVICE_ATTR(temp_state,0644,temp_state_show,temp_state_store);
-#endif
 
 /* sys I/F for thermal zone */
 
