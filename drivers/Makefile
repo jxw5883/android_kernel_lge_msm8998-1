@@ -195,7 +195,3 @@ obj-$(CONFIG_LGE_BROADCAST_ISDBT_JAPAN) += broadcast/
 
 # Mobicore
 obj-$(CONFIG_TRUSTONIC_TEE) += gud/
-
-# optimise for size
-subdir-ccflags-y += $(call cc-option, -g0)
-subdir-ccflags-y += $(call cc-option, -Os)
