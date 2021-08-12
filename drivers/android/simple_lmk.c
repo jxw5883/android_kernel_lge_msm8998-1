@@ -31,7 +31,7 @@ static struct victim_info victims[MAX_VICTIMS] __cacheline_aligned_in_smp;
 static struct task_struct *task_bucket[SHRT_MAX + 1] __cacheline_aligned;
 static DECLARE_WAIT_QUEUE_HEAD(oom_waitq);
 static DECLARE_COMPLETION(reclaim_done);
-static DEFINE_RWLOCK(mm_free_lock);
+static __cacheline_aligned_in_smp DEFINE_RWLOCK(mm_free_lock);
 static int nr_victims;
 static atomic_t needs_reclaim = ATOMIC_INIT(0);
 static atomic_t nr_killed = ATOMIC_INIT(0);
@@ -158,7 +158,7 @@ static unsigned long find_victims(int *vindex)
 	return pages_found;
 }
 
-static int process_victims(int vlen, unsigned long pages_needed)
+static int process_victims(int vlen)
 {
 	unsigned long pages_found = 0;
 	int i, nr_to_kill = 0;
@@ -172,7 +172,7 @@ static int process_victims(int vlen, unsigned long pages_needed)
 		struct task_struct *vtsk = victim->tsk;
 
 		/* The victim's mm lock is taken in find_victims; release it */
-		if (pages_found >= pages_needed) {
+		if (pages_found >= MIN_FREE_PAGES) {
 			task_unlock(vtsk);
 		} else {
 			pages_found += victim->size;
@@ -183,7 +183,7 @@ static int process_victims(int vlen, unsigned long pages_needed)
 	return nr_to_kill;
 }
 
-static void scan_and_kill(unsigned long pages_needed)
+static void scan_and_kill(void)
 {
 	int i, nr_to_kill, nr_found = 0;
 	unsigned long pages_found;
@@ -272,7 +272,7 @@ static int simple_lmk_reclaim_thread(void *data)
 
 	while (1) {
 		wait_event(oom_waitq, atomic_read(&needs_reclaim));
-		scan_and_kill(MIN_FREE_PAGES);
+		scan_and_kill();
 		atomic_set_release(&needs_reclaim, 0);
 	}
 
@@ -301,7 +301,7 @@ void simple_lmk_mm_freed(struct mm_struct *mm)
 static int simple_lmk_vmpressure_cb(struct notifier_block *nb,
 				    unsigned long pressure, void *data)
 {
-	if (pressure == 95 && !atomic_cmpxchg_acquire(&needs_reclaim, 0, 1))
+	if (pressure == 100 && !atomic_cmpxchg_acquire(&needs_reclaim, 0, 1))
 		wake_up(&oom_waitq);
 
 	return NOTIFY_OK;
@@ -319,8 +319,8 @@ static int simple_lmk_init_set(const char *val, const struct kernel_param *kp)
 	struct task_struct *thread;
 
 	if (!atomic_cmpxchg(&init_done, 0, 1)) {
-		thread = kthread_run_perf_critical(simple_lmk_reclaim_thread,
-						   NULL, "simple_lmkd");
+		thread = kthread_run(simple_lmk_reclaim_thread, NULL,
+				     "simple_lmkd");
 		BUG_ON(IS_ERR(thread));
 		BUG_ON(vmpressure_notifier_register(&vmpressure_notif));
 	}
