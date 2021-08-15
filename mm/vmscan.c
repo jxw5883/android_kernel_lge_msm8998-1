@@ -2791,7 +2791,7 @@ retry:
 
 	do {
 		vmpressure_prio(sc->gfp_mask, sc->target_mem_cgroup,
-				sc->priority, sc->order);
+				sc->priority);
 		sc->nr_scanned = 0;
 		zones_reclaimable = shrink_zones(zonelist, sc);
 
